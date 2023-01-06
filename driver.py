@@ -1,6 +1,6 @@
 from HuffmanCoding import HuffmanCoding
 
-FileHandler = HuffmanCoding('/home/aditya/Desktop/dev/huffman/input.txt')
-FileHandler.compress()
+FileHandler = HuffmanCoding('D:/Programs/IT206_Project/DSA_PROJECT/input.txt')
+path = FileHandler.compress()
 
-FileHandler.decompress('/home/aditya/Desktop/dev/huffman/input.bin')
+out,ext = FileHandler.decompress(path)
