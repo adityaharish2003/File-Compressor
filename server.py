@@ -37,7 +37,7 @@ def store(client,dict_,uname,pswd,c_info):
 def check(client,dict_,uname,pswd,c_info):
     pswd = pswd.decode('utf-8')
     if uname in dict_.keys() and dict_[uname] == pswd:
-        client.send((bytes(f'Welcome back {uname.decode("utf-8")}' , 'utf-8')))
+        client.send((bytes(f'Welcome back {uname.decode("utf-8")}\n' , 'utf-8')))
         corl(client,c_info,uname)
         temp = 0
     else:

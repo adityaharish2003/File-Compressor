@@ -35,15 +35,14 @@ def sendf(soc):
     print("sending")
     fname = file_encoder.send()
     soc.send(bytes(fname , 'utf-8'))
-    fileHandler = open(fname,'rb')
-    fileHandler.seek(0)
-    data = fileHandler.read()
-    if not isinstance(data, bytes):
-        print("ISSUE")
-        data = data.encode('utf-8')
-    soc.sendall(data)
-    print('File sent')
-    fileHandler.close()
+    with open(fname,'rb') as fileHandler:
+        fileHandler.seek(0)
+        data = fileHandler.read()
+        if not isinstance(data, bytes):
+            print("ISSUE")
+            data = data.encode('utf-8')
+        soc.sendall(data)
+        print('File sent')
 
 @timeout(5.0)
 def timeout_recv(soc , size):
@@ -55,17 +54,9 @@ def recvf(soc):
     filename = soc.recv(size).decode('utf-8')
     Tk().withdraw()
     enc_path = asksaveasfilename()
-    if enc_path.endswith('.bin') == False:
+    if not enc_path.endswith('.bin') :
         enc_path = enc_path[:-4] + '.bin'
-    # if filename.endswith('.txt'):
-    #     fileHandler = open('abc.txt','w')
-    # elif filename.endswith('.pdf'):
-    #     fileHandler = open('abc.pdf','w')
-    # elif filename.endswith('.png'):  
-    #     fileHandler = open('abc.png','w')
-    # elif filename.endswith('.bin'):
-    fileHandler = open(enc_path, 'wb')
-    if filename.endswith('bin'):
+    with open(enc_path, 'wb') as fileHandler:
         while True:
             try:
                 recvdata = timeout_recv(soc , size)
@@ -73,9 +64,6 @@ def recvf(soc):
                 if not recvdata: break
             except multiprocessing.context.TimeoutError:
                 break
-    else:    
-        fileHandler.write(str(data.decode('utf-8')))
-    fileHandler.close()
     print('File received')
     file_decoder = driver()
     file_decoder.receive(enc_path)
@@ -140,7 +128,7 @@ def cconnect(data):
     soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
         soc.connect((host,cport))
-    except:
+    except ConnectionRefusedError:
         print('Unable to connect to client')
     print('now connected')
     while True:
@@ -168,13 +156,14 @@ def main():
     #creating a socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    # try:
-    sock.connect((host,port))
-    # except:
-    #     print('Unable to connect to chat server')
-    #     sys.exit()
+    try:
+        sock.connect((host,port))
+    except ConnectionRefusedError:
+        print('Unable to connect to chat server')
+        sys.exit()
     while True:
         data = sock.recv(size)
+        data = data.decode('utf8')
         if data.isdigit() and int(data)>2000:
             cconnect(data)
         user_input = input(data)
