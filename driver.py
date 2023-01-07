@@ -1,7 +1,7 @@
 from HuffmanCoding import HuffmanCoding
 import os
 from tkinter import Tk     # from tkinter import Tk for Python 3.x
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilename,asksaveasfilename
 from ImageEncoding import ImageEncoding
 from PIL import Image
 import numpy as  np
@@ -29,8 +29,11 @@ class driver:
         return enc_path
 
     def receive(enc_path):
+        # Tk().withdraw()
+        # enc_path = asksaveasfilename()
+        #add code for writing binary string into binary file
         decoding_huff = HuffmanCoding(enc_path)
-        text_path,ext = decoding_huff.decompress(enc_path)
+        text_path,ext,shape = decoding_huff.decompress()
         # ext = '.bmp'
         # text_path = "cat_decompressed.txt"
         # byte_stream = np.asarray(Image.open("cat.bmp") , np.uint8)
@@ -41,7 +44,7 @@ class driver:
 
         if(ext == ".bmp"):
             imgenc = ImageEncoding(text_path)
-            imgenc.txt_to_img()
+            imgenc.txt_to_img(shape)
         elif(ext == ".pdf"):
             pdfenc = PdfEncoding(text_path)
             pdfenc.decode()

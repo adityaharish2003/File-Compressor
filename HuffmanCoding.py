@@ -8,6 +8,7 @@ class HuffmanCoding:
 		self.heap = []
 		self.codes = {}
 		self.reverse_mapping = {}
+		self.delimiter = b'\x01'
 
 	class HeapNode:
 		def __init__(self, char, freq):
@@ -102,7 +103,7 @@ class HuffmanCoding:
 		return b
 
 
-	def compress(self,file_ext = '.txt'):
+	def compress(self,file_ext = '.txt',shape = 0):
 
 		filename, file_extension = os.path.splitext(self.path)
 		output_path = filename + ".bin"
@@ -121,10 +122,11 @@ class HuffmanCoding:
 
 			b = self.get_byte_array(padded_encoded_text)
 			output.write(bytes(b))
-			delimiter =  b'\x01'
+			delimiter =  self.delimiter
 			output.write(delimiter)
 			output.write(bytes((' '.join('{0:08b}'.format(ord(x), 'b') for x in file_extension)),'utf-8'))
 			output.write(delimiter)
+			self.codes["shape"] = shape
 			pickle.dump(self.codes, output)
 		print("Compressed")
 		return output_path
@@ -156,15 +158,16 @@ class HuffmanCoding:
 		return decoded_text
 
 
-	def decompress(self, input_path):
+	def decompress(self):
 		filename, file_extension = os.path.splitext(self.path)
 		output_path = filename + "_decompressed" + ".txt"
 		file_extension = ""
 		huff_code = {}
-		delimiter  = b'\x01'
-		with open(input_path, 'rb') as file, open(output_path, 'w') as output:
+		delimiter  = self.delimiter
+		with open(self.path, 'rb') as file, open(output_path, 'w') as output:
 			bit_string = ""
 			byte = file.read(1)
+			shape = 0
 			# while(len(byte) > 0 and byte != bytes(' '.join('{0:08b}'.format(ord(x), 'b') for x in delimiter),encoding= 'utf-8')):
 			while(len(byte) >0 and byte != delimiter):
 				byte = ord(byte)
@@ -181,11 +184,12 @@ class HuffmanCoding:
 			file_extension = [chr(int(i,2)) for i in file_extension.split()]
 			file_extension = ''.join(file_extension)
 			huff_code = pickle.load(file)
+			shape = huff_code.pop("shape")
 			rev_huff_code = {v:k for k,v in huff_code.items()}
 			self.reverse_mapping = rev_huff_code
-			
+
 			decompressed_text = self.decode_text(encoded_text)
 			output.write(decompressed_text)
 
 		print("Decompressed")
-		return output_path,file_extension
+		return output_path,file_extension,shape

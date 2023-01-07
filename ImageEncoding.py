@@ -9,6 +9,7 @@ class ImageEncoding:
     def __init__(self,file) :
         self.path = file
         self.filename, self.file_extension = os.path.splitext(file)
+        
     def encode(self):
         byte_stream = np.asarray(Image.open(self.filename + self.file_extension) , np.uint8)
         byte_string = str(byte_stream.tolist())
@@ -18,7 +19,7 @@ class ImageEncoding:
             FileHandler.write(byte_string)
 
         huffman_coding = HuffmanCoding(file_text_path)
-        comp_path = huffman_coding.compress('.bmp')
+        comp_path = huffman_coding.compress('.bmp',shape)
 
         return shape,comp_path
     def metric_calc(self) :
