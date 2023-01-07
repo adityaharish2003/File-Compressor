@@ -5,11 +5,27 @@ import socket
 import os
 import sys
 import select
+import time
+import  multiprocessing.pool
+import  functools
 
 host = ''
 port = 9896
 backlog = 10
-size = 20480000
+size = 4096
+
+
+def timeout(max_timeout):
+    def timeout_decorator(item):
+        @functools.wraps(item)
+        def func_wrapper(*args, **kwargs):
+            pool = multiprocessing.pool.ThreadPool(processes=1)
+            async_result = pool.apply_async(item, args, kwargs)
+            # raises a TimeoutError if execution exceeds max_timeout
+            return async_result.get(max_timeout)
+        return func_wrapper
+    return timeout_decorator
+
 
 #function to send file
 def sendf(soc):
@@ -17,12 +33,19 @@ def sendf(soc):
     soc.send(b'file name: ')
     fname = soc.recv(size)  
     fname = fname.decode('utf-8')  
-    file=open(fname,'rb')
-    data=file.read()
+    fileHandler = open(fname,'rb')
+    fileHandler.seek(0)
+    data = fileHandler.read()
     if not isinstance(data, bytes):
+        print("ISSUE")
         data = data.encode('utf-8')
-    soc.send(data)
+    soc.sendall(data)
     print('File sent')
+    fileHandler.close()
+
+@timeout(5.0)
+def timeout_recv(soc , size):
+    return soc.recv(size)
 
 #function to receive file
 def recvf(soc):
@@ -30,18 +53,22 @@ def recvf(soc):
     data = soc.recv(size)
     user_input = input(data)
     soc.send(bytes(user_input , 'utf-8'))
-    data = soc.recv(20480000)
     if user_input.endswith('.txt'):
         fileHandler = open('abc.txt','w')
     elif user_input.endswith('.pdf'):
         fileHandler = open('abc.pdf','w')
-    elif user_input.endswith('.png'):
+    elif user_input.endswith('.png'):  
         fileHandler = open('abc.png','w')
     elif user_input.endswith('.bin'):
         fileHandler = open("abc.bin" , 'wb')
-    
     if user_input.endswith('bin'):
-        fileHandler.write(data)
+        while True:
+            try:
+                recvdata = timeout_recv(soc , size)
+                fileHandler.write(recvdata)
+                if not recvdata: break
+            except multiprocessing.context.TimeoutError:
+                break
     else:    
         fileHandler.write(str(data.decode('utf-8')))
     fileHandler.close()
@@ -58,7 +85,7 @@ def clisten(user_input):
     print('listening')
     s.listen(backlog)
     clist=[s]
-    while 1:
+    while True:
     # Using Select to handle multiplexing
         inready,outready,exceptready = select.select(clist,[],[])
         for sock in inready:
