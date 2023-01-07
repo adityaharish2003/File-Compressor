@@ -15,8 +15,8 @@ class ImageEncoding:
         byte_string = str(byte_stream.tolist())
         shape = byte_stream.shape
         file_text_path = self.filename + ".txt"
-        with open(file_text_path , 'w') as FileHandler:
-            FileHandler.write(byte_string)
+        with open(file_text_path , 'wb') as FileHandler:
+            FileHandler.write(bytes(byte_string,encoding = 'utf8'))
 
         huffman_coding = HuffmanCoding(file_text_path)
         comp_path = huffman_coding.compress('.bmp',shape)
