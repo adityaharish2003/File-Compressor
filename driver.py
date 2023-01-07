@@ -8,7 +8,7 @@ import numpy as  np
 from pdf_driver import PdfEncoding
 
 class driver:
-    def send():
+    def send(self):
         Tk().withdraw()
         path = askopenfilename()
         print(path)
@@ -28,7 +28,7 @@ class driver:
             enc_path = pdfenc.encode()
         return enc_path
 
-    def receive(enc_path):
+    def receive(self, enc_path):
         # Tk().withdraw()
         # enc_path = asksaveasfilename()
         #add code for writing binary string into binary file

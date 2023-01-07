@@ -8,7 +8,9 @@ import select
 import time
 import  multiprocessing.pool
 import  functools
-
+from tkinter import Tk     # from tkinter import Tk for Python 3.x
+from tkinter.filedialog import askopenfilename,asksaveasfilename
+from driver import driver
 host = ''
 port = 9896
 backlog = 10
@@ -29,8 +31,9 @@ def timeout(max_timeout):
 
 #function to send file
 def sendf(soc):
+    file_encoder = driver()
     print("sending")
-    fname = input("File Name: ")
+    fname = file_encoder.send()
     soc.send(bytes(fname , 'utf-8'))
     fileHandler = open(fname,'rb')
     fileHandler.seek(0)
@@ -50,14 +53,18 @@ def timeout_recv(soc , size):
 def recvf(soc):
     print("Recieving")
     filename = soc.recv(size).decode('utf-8')
-    if filename.endswith('.txt'):
-        fileHandler = open('abc.txt','w')
-    elif filename.endswith('.pdf'):
-        fileHandler = open('abc.pdf','w')
-    elif filename.endswith('.png'):  
-        fileHandler = open('abc.png','w')
-    elif filename.endswith('.bin'):
-        fileHandler = open("abc.bin" , 'wb')
+    Tk().withdraw()
+    enc_path = asksaveasfilename()
+    if enc_path.endswith('.bin') == False:
+        enc_path = enc_path[:-4] + '.bin'
+    # if filename.endswith('.txt'):
+    #     fileHandler = open('abc.txt','w')
+    # elif filename.endswith('.pdf'):
+    #     fileHandler = open('abc.pdf','w')
+    # elif filename.endswith('.png'):  
+    #     fileHandler = open('abc.png','w')
+    # elif filename.endswith('.bin'):
+    fileHandler = open(enc_path, 'wb')
     if filename.endswith('bin'):
         while True:
             try:
@@ -70,6 +77,9 @@ def recvf(soc):
         fileHandler.write(str(data.decode('utf-8')))
     fileHandler.close()
     print('File received')
+    file_decoder = driver()
+    file_decoder.receive(enc_path)
+    
 
 #function for client to listen for other client connections
 def clisten(user_input):
