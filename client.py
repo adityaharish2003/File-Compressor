@@ -30,9 +30,8 @@ def timeout(max_timeout):
 #function to send file
 def sendf(soc):
     print("sending")
-    soc.send(b'file name: ')
-    fname = soc.recv(size)  
-    fname = fname.decode('utf-8')  
+    fname = input("File Name: ")
+    soc.send(bytes(fname , 'utf-8'))
     fileHandler = open(fname,'rb')
     fileHandler.seek(0)
     data = fileHandler.read()
@@ -50,18 +49,16 @@ def timeout_recv(soc , size):
 #function to receive file
 def recvf(soc):
     print("Recieving")
-    data = soc.recv(size)
-    user_input = input(data)
-    soc.send(bytes(user_input , 'utf-8'))
-    if user_input.endswith('.txt'):
+    filename = soc.recv(size).decode('utf-8')
+    if filename.endswith('.txt'):
         fileHandler = open('abc.txt','w')
-    elif user_input.endswith('.pdf'):
+    elif filename.endswith('.pdf'):
         fileHandler = open('abc.pdf','w')
-    elif user_input.endswith('.png'):  
+    elif filename.endswith('.png'):  
         fileHandler = open('abc.png','w')
-    elif user_input.endswith('.bin'):
+    elif filename.endswith('.bin'):
         fileHandler = open("abc.bin" , 'wb')
-    if user_input.endswith('bin'):
+    if filename.endswith('bin'):
         while True:
             try:
                 recvdata = timeout_recv(soc , size)
@@ -102,8 +99,8 @@ def clisten(user_input):
                         print()
                         print(data)
                         try:
-                            if data == '\GET_FILE':
-                                sendf(client)
+                            if data == '\SEND_FILE':
+                                recvf(client)
                         except Exception as e:
                             print(e)
                         if data == '\CLOSE_SESSION':
@@ -112,8 +109,8 @@ def clisten(user_input):
                             break
                         user_input = input('fs> ')
                         client.send(bytes(user_input , 'utf-8'))
-                        if user_input == '\GET_FILE':
-                            recvf(client)
+                        if user_input == '\SEND_FILE':
+                            sendf(client)
                             print("Sent file")     
                         if user_input == '\CLOSE_SESSION':
                             print('session ended')
@@ -125,7 +122,7 @@ def clisten(user_input):
                     #continue                
     return             
 
-#function for client to connect     to listening client                
+#function for client to connect to listening client                
 def cconnect(data):
     print("IN CONNECT")
     cport = int(data)
@@ -140,16 +137,16 @@ def cconnect(data):
         data = soc.recv(size)
         data = data.decode('utf8')
         print(data)
-        if data == '\GET_FILE':
-            sendf(soc)
+        if data == '\SEND_FILE':
+            recvf(soc)
         if data == '\CLOSE_SESSION':
             print('session ended')
             soc.close()
             break
         user_input = input('ft> ')
         soc.send(bytes(user_input , 'utf-8'))
-        if  user_input == '\GET_FILE':
-            recvf(soc)  
+        if  user_input == '\SEND_FILE':
+            sendf(soc) 
         if user_input == '\CLOSE_SESSION':
             print('session ended')
             soc.close()
