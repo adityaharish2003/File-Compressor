@@ -102,11 +102,11 @@ class HuffmanCoding:
 		return b
 
 
-	def compress(self):
+	def compress(self,file_ext = '.txt'):
 
 		filename, file_extension = os.path.splitext(self.path)
 		output_path = filename + ".bin"
-
+		file_extension = file_ext
 		with open(self.path, 'r+') as file, open(output_path, 'wb') as output:
 			text = file.read()
 			text = text.rstrip()
@@ -121,7 +121,7 @@ class HuffmanCoding:
 
 			b = self.get_byte_array(padded_encoded_text)
 			output.write(bytes(b))
-			delimiter =  b'\x00'
+			delimiter =  b'\x01'
 			output.write(delimiter)
 			output.write(bytes((' '.join('{0:08b}'.format(ord(x), 'b') for x in file_extension)),'utf-8'))
 			output.write(delimiter)
@@ -161,7 +161,7 @@ class HuffmanCoding:
 		output_path = filename + "_decompressed" + ".txt"
 		file_extension = ""
 		huff_code = {}
-		delimiter  = b'\x00'
+		delimiter  = b'\x01'
 		with open(input_path, 'rb') as file, open(output_path, 'w') as output:
 			bit_string = ""
 			byte = file.read(1)
@@ -173,11 +173,9 @@ class HuffmanCoding:
 				byte = file.read(1)
 	
 			encoded_text = self.remove_padding(bit_string)
-
-
 			byte = file.read(1)
 			# while(len(byte) > 0 and (byte) != bytes(' '.join('{0:08b}'.format(ord(x), 'b') for x in delimiter),encoding= 'utf-8')):
-			while(len(byte) >0 and byte != delimiter):
+			while(len(byte) >0 and byte != delimiter ):
 				file_extension += chr(ord(byte))
 				byte = file.read(1)
 			file_extension = [chr(int(i,2)) for i in file_extension.split()]
@@ -187,7 +185,6 @@ class HuffmanCoding:
 			self.reverse_mapping = rev_huff_code
 			
 			decompressed_text = self.decode_text(encoded_text)
-			
 			output.write(decompressed_text)
 
 		print("Decompressed")
