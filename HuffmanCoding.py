@@ -8,7 +8,9 @@ class HuffmanCoding:
 		self.heap = []
 		self.codes = {}
 		self.reverse_mapping = {}
-		self.delimiter = b'\x01'
+		self.delimiter = '\x01'
+		self.delimiter += '\x02'
+		self.delimiter += '\x03'
 
 	class HeapNode:
 		def __init__(self, char, freq):
@@ -108,28 +110,26 @@ class HuffmanCoding:
 		filename, file_extension = os.path.splitext(self.path)
 		output_path = filename + ".bin"
 		file_extension = file_ext
-		with open(self.path, 'r+') as file, open(output_path, 'wb') as output:
+		with open(self.path, 'r+' , encoding = 'latin1') as file, open(output_path, 'wb') as output:
 			text = file.read()
 			text = text.rstrip()
-
 			frequency = self.make_frequency_dict(text)
 			self.make_heap(frequency)
 			self.merge_nodes()
 			self.make_codes()
-
 			encoded_text = self.get_encoded_text(text)
 			padded_encoded_text = self.pad_encoded_text(encoded_text)
-
+			print(len(self.codes))
 			b = self.get_byte_array(padded_encoded_text)
 			output.write(bytes(b))
-			delimiter =  self.delimiter
+			delimiter =  bytes(self.delimiter,'latin1')
 			output.write(delimiter)
-			output.write(bytes((' '.join('{0:08b}'.format(ord(x), 'b') for x in file_extension)),'utf-8'))
-			output.write(delimiter)
+			output.write(bytes((' '.join('{0:08b}'.format(ord(x), 'b') for x in file_extension)),'latin1'))
+			output.write(bytes('\x01','latin1'))
 			self.codes["shape"] = shape
 			pickle.dump(self.codes, output)
 		print("Compressed")
-		return output_path
+		return output_path,self.codes
 
 
 	""" functions for decompression: """
@@ -160,31 +160,52 @@ class HuffmanCoding:
 
 	def decompress(self):
 		filename, file_extension = os.path.splitext(self.path)
-		output_path = filename + "_decompressed" + ".txt"
+		output_path = filename  + "_unc" + ".txt"
 		file_extension = ""
 		huff_code = {}
-		delimiter  = self.delimiter
-		with open(self.path, 'rb') as file, open(output_path, 'w') as output:
+		delimiter = [bytes('\x01','latin1'),bytes('\x02','latin1'),bytes('\x03','latin1')]
+		with open(self.path, 'rb') as file, open(output_path, 'w',encoding='latin1') as output:
 			bit_string = ""
 			byte = file.read(1)
 			shape = 0
+			while(True):
 			# while(len(byte) > 0 and byte != bytes(' '.join('{0:08b}'.format(ord(x), 'b') for x in delimiter),encoding= 'utf-8')):
-			while(len(byte) >0 and byte != delimiter):
-				byte = ord(byte)
-				bits = bin(byte)[2:].rjust(8, '0')
-				bit_string += bits
-				byte = file.read(1)
-	
+				while(len(byte) >0 and byte != delimiter[0]):
+					byte = ord(byte)
+					bits = bin(byte)[2:].rjust(8, '0')
+					bit_string += bits
+					byte = file.read(1)
+				char1 = file.read(1)
+				char2 = ''
+				if(char1 == delimiter[1]):
+					char2 = file.read(1)
+					if(char2 == delimiter[2]):
+						break
+					else:
+						char1 = ord(char1)
+						bits = bin(char1)[2:].rjust(8, '0')
+						bit_string += bits
+						char2 = ord(char2)
+						bits = bin(char2)[2:].rjust(8, '0')
+						bit_string += bits
+						byte = file.read(1)
+				else :
+					char1= ord(char1)
+					bits = bin(char1)[2:].rjust(8, '0')
+					bit_string += bits
+					byte = file.read(1)
+
 			encoded_text = self.remove_padding(bit_string)
 			byte = file.read(1)
 			# while(len(byte) > 0 and (byte) != bytes(' '.join('{0:08b}'.format(ord(x), 'b') for x in delimiter),encoding= 'utf-8')):
-			while(len(byte) >0 and byte != delimiter ):
+			while(len(byte) >0 and byte != delimiter[0]):
 				file_extension += chr(ord(byte))
 				byte = file.read(1)
 			file_extension = [chr(int(i,2)) for i in file_extension.split()]
 			file_extension = ''.join(file_extension)
-			huff_code = pickle.load(file)
+			huff_code = pickle.load(file,encoding='latin1')
 			shape = huff_code.pop("shape")
+			# rev_huff_code = {v:k for k,v in codes.items()}
 			rev_huff_code = {v:k for k,v in huff_code.items()}
 			self.reverse_mapping = rev_huff_code
 
@@ -192,4 +213,4 @@ class HuffmanCoding:
 			output.write(decompressed_text)
 
 		print("Decompressed")
-		return output_path,file_extension,shape
+		return output_path,file_extension,shape,huff_code

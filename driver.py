@@ -21,19 +21,19 @@ class driver:
             # out,ext = FileHandler.decompress(path)
         elif(file_extension == ".bmp"):
             imgenc = ImageEncoding(path)
-            shape,enc_path = imgenc.encode()
+            shape,enc_path,codes = imgenc.encode()
             # imgenc.decode(enc_path,shape)
         elif(file_extension == ".pdf"):
             pdfenc = PdfEncoding(path)
             enc_path = pdfenc.encode()
-        return enc_path
+        return enc_path,codes
 
     def receive(self, enc_path):
         # Tk().withdraw()
         # enc_path = asksaveasfilename()
         #add code for writing binary string into binary file
         decoding_huff = HuffmanCoding(enc_path)
-        text_path,ext,shape = decoding_huff.decompress()
+        text_path,ext,shape,codes = decoding_huff.decompress()
         # ext = '.bmp'
         # text_path = "cat_decompressed.txt"
         # byte_stream = np.asarray(Image.open("cat.bmp") , np.uint8)
@@ -48,3 +48,4 @@ class driver:
         elif(ext == ".pdf"):
             pdfenc = PdfEncoding(text_path)
             pdfenc.decode()
+        return codes
