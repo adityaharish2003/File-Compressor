@@ -129,7 +129,7 @@ class HuffmanCoding:
 			self.codes["shape"] = shape
 			pickle.dump(self.codes, output)
 		print("Compressed")
-		return output_path,self.codes
+		return output_path
 
 
 	""" functions for decompression: """
@@ -213,4 +213,4 @@ class HuffmanCoding:
 			output.write(decompressed_text)
 
 		print("Decompressed")
-		return output_path,file_extension,shape,huff_code
+		return output_path,file_extension,shape

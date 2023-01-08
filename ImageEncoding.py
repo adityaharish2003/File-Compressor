@@ -94,9 +94,11 @@ class ImageEncoding:
         with open(file_text_path , 'wb') as FileHandler:
             FileHandler.write(bytes(values))
         huffman_coding = HuffmanCoding(file_text_path)
-        comp_path,codes = huffman_coding.compress('.bmp',shape)
-
-        return shape,comp_path,codes
+        comp_path = huffman_coding.compress('.bmp',shape)
+        # data = Image.frombytes('RGB', shape , bytes(values))
+        # # data = Image.fromarray(res)
+        # data.save(self.filename +"test" + ".bmp")
+        return shape,comp_path
         
     def metric_calc(self) :
         metric = Metric('image_input.txt' , 'image_input.bin')
@@ -118,7 +120,7 @@ class ImageEncoding:
         data = Image.fromarray(res)
         data.save('cat_uncompressed.png')
         
-    def txt_to_img(self,shape = (853, 1280, 3)):
+    def txt_to_img(self,shape):
         byte_string_uncompressed = []
         with open(self.path,'rb') as FileHandler:
             byte = FileHandler.read(1)
@@ -132,6 +134,9 @@ class ImageEncoding:
         # res = np.array(res)
         # res = res.astype(np.uint8)
         # res = np.reshape(res, shape)
-        data = Image.frombytes('RGB', shape , bytes(byte_string_uncompressed))
+        # byte_string_uncompressed = byte_string_uncompressed[0:shape[0]*shape[1]]
+        # byte_string_uncompressed = np.array(byte_string_uncompressed).reshape(-1,3).transpose()
+        print(byte_string_uncompressed)
+        data = Image.fromarray(byte_string_uncompressed,mode = "RGB")
         # data = Image.fromarray(res)
-        data.save(self.filename  + ".bmp")
+        data.save(self.filename + ".bmp")
