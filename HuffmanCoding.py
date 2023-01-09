@@ -371,22 +371,18 @@ class HuffmanCoding:
 					bit_string += bits
 					byte = file.read(1)
 				char1 = file.read(1)
-				char2 = ''
+				char2 = file.read(1)
 				if(char1 == delimiter[1]):
-					char2 = file.read(1)
-					if(char2 == delimiter[2]):
-						break
-					else:
-						char1 = ord(char1)
-						bits = bin(char1)[2:].rjust(8, '0')
-						bit_string += bits
-						char2 = ord(char2)
-						bits = bin(char2)[2:].rjust(8, '0')
-						bit_string += bits
-						byte = file.read(1)
+					break
 				else :
+					byte = ord(byte)
+					bits = bin(byte)[2:].rjust(8, '0')
+					bit_string += bits
 					char1= ord(char1)
 					bits = bin(char1)[2:].rjust(8, '0')
+					bit_string += bits
+					char2 = ord(char2)
+					bits = bin(char2)[2:].rjust(8, '0')
 					bit_string += bits
 					byte = file.read(1)
 

@@ -88,7 +88,9 @@ class ImageEncoding:
         # byte_string = str(byte_stream.tolist())
         byte_stream = Image.open(self.filename + self.file_extension)
         byte_string = byte_stream.getdata()
+        # print(list(byte_string))
         values = chain.from_iterable(byte_string)
+        # print(*values)
         shape = (byte_stream.width,byte_stream.height)
         file_text_path = self.filename + ".txt"
         with open(file_text_path , 'wb') as FileHandler:
