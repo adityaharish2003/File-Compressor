@@ -21,7 +21,7 @@ class driver:
             # out,ext = FileHandler.decompress(path)
         elif(file_extension.lower() == ".bmp"):
             imgenc = ImageEncoding(path)
-            shape,enc_path = imgenc.encode()
+            enc_path = imgenc.encode()
             # imgenc.decode(enc_path,shape)
         elif(file_extension == ".pdf"):
             pdfenc = PdfEncoding(path)
@@ -34,6 +34,8 @@ class driver:
         #add code for writing binary string into binary file
         decoding_huff = HuffmanCoding(enc_path)
         text_path,ext,shape= decoding_huff.decompress()
+        if(ext == '.bmp'):
+            text_path,ext,shape= decoding_huff.decompress_img()
         # ext = '.bmp'
         # text_path = "cat_decompressed.txt"
         # byte_stream = np.asarray(Image.open("cat.bmp") , np.uint8)

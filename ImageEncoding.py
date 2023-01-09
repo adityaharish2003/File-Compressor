@@ -89,16 +89,14 @@ class ImageEncoding:
         byte_stream = Image.open(self.filename + self.file_extension)
         byte_string = byte_stream.getdata()
         values = chain.from_iterable(byte_string)
-        shape = (byte_stream.height,byte_stream.width)
+        shape = (byte_stream.width,byte_stream.height)
         file_text_path = self.filename + ".txt"
         with open(file_text_path , 'wb') as FileHandler:
             FileHandler.write(bytes(values))
         huffman_coding = HuffmanCoding(file_text_path)
-        comp_path = huffman_coding.compress('.bmp',shape)
-        # data = Image.frombytes('RGB', shape , bytes(values))
-        # # data = Image.fromarray(res)
-        # data.save(self.filename +"test" + ".bmp")
-        return shape,comp_path
+        comp_path = huffman_coding.compress_img('.bmp',shape)
+
+        return comp_path
         
     def metric_calc(self) :
         metric = Metric('image_input.txt' , 'image_input.bin')
@@ -120,23 +118,60 @@ class ImageEncoding:
         data = Image.fromarray(res)
         data.save('cat_uncompressed.png')
         
+    # def txt_to_img(self,shape = (853, 1280, 3)):
+    #     byte_string_uncompressed = []
+    #     with open(self.path,'rb') as FileHandler:
+    #         byte = FileHandler.read(1)
+    #         byte_string_uncompressed.append(int.from_bytes(byte,"big"))
+    #         while(len(byte)>0):
+    #             byte = FileHandler.read(1)
+    #             byte_string_uncompressed.append(int.from_bytes(byte,"big"))
+    #         # byte_stream_uncompressed = np.asarray(FileHandler.read(), np.uint8)
+    #     # temp = re.findall(r'\d+', byte_string_uncompressed)
+    #     # res = list(map(int, temp))
+    #     # res = np.array(res)
+    #     # res = res.astype(np.uint8)
+    #     # res = np.reshape(res, shape)
+    #     data = Image.frombytes('RGB', shape , bytes(byte_string_uncompressed))
+    #     # data = Image.fromarray(res)
+    #     data.save(self.filename  + ".bmp")
+        
     def txt_to_img(self,shape):
         byte_string_uncompressed = []
         with open(self.path,'rb') as FileHandler:
             byte = FileHandler.read(1)
-            byte_string_uncompressed.append(int.from_bytes(byte,"big"))
+            byte_string_uncompressed.append(int.from_bytes(byte,"little"))
             while(len(byte)>0):
                 byte = FileHandler.read(1)
-                byte_string_uncompressed.append(int.from_bytes(byte,"big"))
+                byte_string_uncompressed.append(int.from_bytes(byte,"little"))
             # byte_stream_uncompressed = np.asarray(FileHandler.read(), np.uint8)
         # temp = re.findall(r'\d+', byte_string_uncompressed)
         # res = list(map(int, temp))
         # res = np.array(res)
         # res = res.astype(np.uint8)
         # res = np.reshape(res, shape)
-        # byte_string_uncompressed = byte_string_uncompressed[0:shape[0]*shape[1]]
-        # byte_string_uncompressed = np.array(byte_string_uncompressed).reshape(-1,3).transpose()
-        print(byte_string_uncompressed)
-        data = Image.fromarray(byte_string_uncompressed,mode = "RGB")
+        # byte_string_uncompressed = byte_string_uncompressed[0:shape[0]*shape[1]*3]
+        # byte_string_uncompressed = np.array(byte_string_uncompressed).reshape(shape[0],shape[1],3)
+        k = 0
+        data = Image.new(mode = "RGB",size = (shape[0],shape[1]))
+        pixel_map = data.load()
+        average = [0,0,0]
+        # print(len(byte_string_uncompressed))
+        for i in range(shape[1]):
+            for j in range(shape[0]):
+                if(k+3 > len(byte_string_uncompressed)):
+                    break
+                pixel_map[j,i] = (byte_string_uncompressed[k],byte_string_uncompressed[k+1],byte_string_uncompressed[k+2])
+
+                average[0] += byte_string_uncompressed[k]
+                average[1] += byte_string_uncompressed[k+1]
+                
+                average[2] += byte_string_uncompressed[k+2]
+                k+=3
+        average[0]/=shape[0]*shape[1]
+        average[1]/=shape[0]*shape[1]
+        average[2]/=shape[0]*shape[1]
+        # print(byte_string_uncompressed)
+        # print(average)
         # data = Image.fromarray(res)
-        data.save(self.filename + ".bmp")
+        data.save(self.filename+"_new" + ".bmp")
