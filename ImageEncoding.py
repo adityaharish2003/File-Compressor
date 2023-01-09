@@ -174,4 +174,4 @@ class ImageEncoding:
         # print(byte_string_uncompressed)
         # print(average)
         # data = Image.fromarray(res)
-        data.save(self.filename+"_new" + ".bmp")
+        data.save(self.filename + ".bmp")
