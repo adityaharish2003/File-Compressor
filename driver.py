@@ -11,7 +11,6 @@ class driver:
     def send(self):
         Tk().withdraw()
         path = askopenfilename()
-        print(path)
         filename, file_extension = os.path.splitext(path)
         shape = 0
         enc_path = ""

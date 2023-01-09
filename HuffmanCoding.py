@@ -129,7 +129,11 @@ class HuffmanCoding:
 			self.make_heap(frequency)
 			self.merge_nodes()
 			self.make_codes()
+			exp_size = 0
+			for i in self.codes.keys():
+				exp_size += frequency[i]*(len(self.codes[i]))
 			#red
+			print(exp_size)
 			encoded_text = self.get_encoded_text(red_array)
 			padded_encoded_text = self.pad_encoded_text(encoded_text)
 			b = self.get_byte_array(padded_encoded_text)
@@ -168,7 +172,7 @@ class HuffmanCoding:
 			self.make_codes()
 			encoded_text = self.get_encoded_text(text)
 			padded_encoded_text = self.pad_encoded_text(encoded_text)
-			print(len(self.codes))
+			# print(len(self.codes))
 			b = self.get_byte_array(padded_encoded_text)
 			output.write(bytes(b))
 			delimiter =  bytes(self.delimiter,'latin1')
@@ -233,6 +237,7 @@ class HuffmanCoding:
 			file_extension = [chr(int(i,2)) for i in file_extension.split()]
 			file_extension = ''.join(file_extension)
 			#Red
+			byte = file.read(1)
 			while(True):
 			# while(len(byte) > 0 and byte != bytes(' '.join('{0:08b}'.format(ord(x), 'b') for x in delimiter),encoding= 'utf-8')):
 				while(len(byte) >0 and byte != delimiter[0]):
@@ -241,28 +246,24 @@ class HuffmanCoding:
 					bit_string += bits
 					byte = file.read(1)
 				char1 = file.read(1)
-				char2 = ''
-				if(char1 == delimiter[1]):
-					char2 = file.read(1)
-					if(char2 == delimiter[2]):
+				char2 = file.read(1)
+				if(char1 == delimiter[1] and char2 == delimiter[2]):
 						break
-					else:
-						char1 = ord(char1)
-						bits = bin(char1)[2:].rjust(8, '0')
-						bit_string += bits
-						char2 = ord(char2)
-						bits = bin(char2)[2:].rjust(8, '0')
-						bit_string += bits
-						byte = file.read(1)
 				else :
+					byte = ord(byte)
+					bits = bin(byte)[2:].rjust(8, '0')
+					bit_string += bits
 					char1= ord(char1)
 					bits = bin(char1)[2:].rjust(8, '0')
 					bit_string += bits
+					char2 = ord(char2)
+					bits = bin(char2)[2:].rjust(8, '0')
+					bit_string += bits
 					byte = file.read(1)
 			#Green
-			print(len(bit_string))
+			# print(len(bit_string))
 			byte = file.read(1)
-			print(byte)
+			# print(byte)
 			bit_string2 = ""
 			while(True):
 			# while(len(byte) > 0 and byte != bytes(' '.join('{0:08b}'.format(ord(x), 'b') for x in delimiter),encoding= 'utf-8')):
@@ -272,22 +273,18 @@ class HuffmanCoding:
 					bit_string2 += bits
 					byte = file.read(1)
 				char1 = file.read(1)
-				char2 = ''
-				if(char1 == delimiter[1]):
-					char2 = file.read(1)
-					if(char2 == delimiter[2]):
-						break
-					else:
-						char1 = ord(char1)
-						bits = bin(char1)[2:].rjust(8, '0')
-						bit_string2 += bits
-						char2 = ord(char2)
-						bits = bin(char2)[2:].rjust(8, '0')
-						bit_string2 += bits
-						byte = file.read(1)
+				char2 = file.read(1)
+				if(char1 == delimiter[1] and char2 == delimiter[2]):
+					break
 				else :
-					char1= ord(char1)
+					byte = ord(byte)
+					bits = bin(byte)[2:].rjust(8, '0')
+					bit_string2 += bits
+					char1 = ord(char1)
 					bits = bin(char1)[2:].rjust(8, '0')
+					bit_string2 += bits
+					char2 = ord(char2)
+					bits = bin(char2)[2:].rjust(8, '0')
 					bit_string2 += bits
 					byte = file.read(1)
 			#Blue
@@ -301,22 +298,18 @@ class HuffmanCoding:
 					bit_string3 += bits
 					byte = file.read(1)
 				char1 = file.read(1)
-				char2 = ''
-				if(char1 == delimiter[1]):
-					char2 = file.read(1)
-					if(char2 == delimiter[2]):
-						break
-					else:
-						char1 = ord(char1)
-						bits = bin(char1)[2:].rjust(8, '0')
-						bit_string3 += bits
-						char2 = ord(char2)
-						bits = bin(char2)[2:].rjust(8, '0')
-						bit_string3 += bits
-						byte = file.read(1)
+				char2 = file.read(1)
+				if(char1 == delimiter[1] and char2 == delimiter[2]):
+					break
 				else :
+					byte = ord(byte)
+					bits = bin(byte)[2:].rjust(8, '0')
+					bit_string3 += bits
 					char1= ord(char1)
 					bits = bin(char1)[2:].rjust(8, '0')
+					bit_string3 += bits
+					char2= ord(char2)
+					bits = bin(char2)[2:].rjust(8, '0')
 					bit_string3 += bits
 					byte = file.read(1)
 
@@ -327,14 +320,16 @@ class HuffmanCoding:
 			# while(len(byte) > 0 and (byte) != bytes(' '.join('{0:08b}'.format(ord(x), 'b') for x in delimiter),encoding= 'utf-8')):
 			huff_code = pickle.load(file,encoding='latin1')
 			shape = huff_code.pop("shape")
-			# rev_huff_code = {v:k for k,v in codes.items()}
 			print(huff_code)
+			# rev_huff_code = {v:k for k,v in codes.items()}
+			# print(huff_code)
 			rev_huff_code = {v:k for k,v in huff_code.items()}
 			self.reverse_mapping = rev_huff_code
 			red = self.decode_img(encoded_text1)
 			green = self.decode_img(encoded_text2)
 			blue = self.decode_img(encoded_text3)
 			length = shape[0]*shape[1]
+			print(len(red),len(blue),len(green))
 			red = np.resize(red,length)
 			green = np.resize(green,length)
 			blue = np.resize(blue,length)
