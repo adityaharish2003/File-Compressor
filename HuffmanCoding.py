@@ -372,7 +372,7 @@ class HuffmanCoding:
 					byte = file.read(1)
 				char1 = file.read(1)
 				char2 = file.read(1)
-				if(char1 == delimiter[1]):
+				if(char1 == delimiter[1] and char2 == delimiter[2]):
 					break
 				else :
 					byte = ord(byte)
