@@ -124,7 +124,7 @@ class HuffmanCoding:
 			red_array = byte_string_uncompressed[0::3]
 			green_array = byte_string_uncompressed[1::3]
 			blue_array = byte_string_uncompressed[2::3]
-			print(f"{np.average(red_array)} {np.average(green_array)} {np.average(blue_array)}")
+			# print(f"{np.average(red_array)} {np.average(green_array)} {np.average(blue_array)}")
 			frequency = self.make_frequency_dict(byte_string_uncompressed)
 			self.make_heap(frequency)
 			self.merge_nodes()
@@ -133,7 +133,7 @@ class HuffmanCoding:
 			for i in self.codes.keys():
 				exp_size += frequency[i]*(len(self.codes[i]))
 			#red
-			print(exp_size)
+			# print(exp_size)
 			encoded_text = self.get_encoded_text(red_array)
 			padded_encoded_text = self.pad_encoded_text(encoded_text)
 			b = self.get_byte_array(padded_encoded_text)
@@ -318,9 +318,10 @@ class HuffmanCoding:
 			encoded_text3 = self.remove_padding(bit_string3)
 			# byte = file.read(1)
 			# while(len(byte) > 0 and (byte) != bytes(' '.join('{0:08b}'.format(ord(x), 'b') for x in delimiter),encoding= 'utf-8')):
+			# print(len(red),len(blue),len(green))
 			huff_code = pickle.load(file,encoding='latin1')
 			shape = huff_code.pop("shape")
-			print(huff_code)
+			# print(huff_code)
 			# rev_huff_code = {v:k for k,v in codes.items()}
 			# print(huff_code)
 			rev_huff_code = {v:k for k,v in huff_code.items()}
@@ -362,7 +363,8 @@ class HuffmanCoding:
 				byte = file.read(1)
 			file_extension = [chr(int(i,2)) for i in file_extension.split()]
 			file_extension = ''.join(file_extension)
-			if file_extension == '.bmp':
+			# print(file_extension)
+			if file_extension == '.bmp' or file_extension == '.jpg' or file_extension == '.png':
 				return output_path,file_extension,shape
 			while(True):
 				while(len(byte) >0 and byte != delimiter[0]):

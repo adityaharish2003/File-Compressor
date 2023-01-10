@@ -11,6 +11,7 @@ class ImageEncoding:
     def __init__(self,file) :
         self.path = file
         self.filename, self.file_extension = os.path.splitext(file)
+        self.file_extension = self.file_extension.lower()
 
     def to_binary_list(self,n):
         return [n] if (n <= 1) else self.to_binary_list(n >> 1) + [n & 1]
@@ -96,7 +97,7 @@ class ImageEncoding:
         with open(file_text_path , 'wb') as FileHandler:
             FileHandler.write(bytes(values))
         huffman_coding = HuffmanCoding(file_text_path)
-        comp_path = huffman_coding.compress_img('.bmp',shape)
+        comp_path = huffman_coding.compress_img(self.file_extension,shape)
 
         return comp_path
         
@@ -138,7 +139,7 @@ class ImageEncoding:
     #     # data = Image.fromarray(res)
     #     data.save(self.filename  + ".bmp")
         
-    def txt_to_img(self,shape):
+    def txt_to_img(self,shape,file_ext):
         byte_string_uncompressed = []
         with open(self.path,'rb') as FileHandler:
             byte = FileHandler.read(1)
@@ -176,4 +177,4 @@ class ImageEncoding:
         # print(byte_string_uncompressed)
         # print(average)
         # data = Image.fromarray(res)
-        data.save(self.filename + ".bmp")
+        data.save(self.filename + file_ext)
