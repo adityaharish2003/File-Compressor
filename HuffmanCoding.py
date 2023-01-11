@@ -7,14 +7,14 @@ import numpy as np
 class HuffmanCoding:
 	def __init__(self, path):
 		self.path = path
-		self.heap = []
-		self.codes = {}
-		self.reverse_mapping = {}
+		self.priority_queue = []
+		self.huffman_codes = {}
+		self.code_to_char = {}
 		self.delimiter = '\x01'
 		self.delimiter += '\x02'
 		self.delimiter += '\x03'
 
-	class HeapNode:
+	class HuffmanTreeNode:
 		def __init__(self, char, freq):
 			self.char = char
 			self.freq = freq
@@ -28,13 +28,13 @@ class HuffmanCoding:
 		def __eq__(self, other):
 			if(other == None):
 				return False
-			if(not isinstance(other, HeapNode)):
+			if(not isinstance(other, HuffmanTreeNode)):
 				return False
 			return self.freq == other.freq
 
 	# functions for compression:
 
-	def make_frequency_dict(self, text):
+	def get_char_frequency(self, text):
 		frequency = {}
 		for character in text:
 			if not character in frequency:
@@ -42,51 +42,51 @@ class HuffmanCoding:
 			frequency[character] += 1
 		return frequency
 
-	def make_heap(self, frequency):
+	def make_priority_queue(self, frequency):
 		for key in frequency:
-			node = self.HeapNode(key, frequency[key])
-			heapq.heappush(self.heap, node)
+			node = self.HuffmanTreeNode(key, frequency[key])
+			heapq.heappush(self.priority_queue, node)
 
 	def merge_nodes(self):
-		while(len(self.heap) > 1):
-			node1 = heapq.heappop(self.heap)
-			node2 = heapq.heappop(self.heap)
+		while(len(self.priority_queue) > 1):
+			node1 = heapq.heappop(self.priority_queue)
+			node2 = heapq.heappop(self.priority_queue)
 
-			merged = self.HeapNode(None, node1.freq + node2.freq)
+			merged = self.HuffmanTreeNode(None, node1.freq + node2.freq)
 			merged.left = node1
 			merged.right = node2
 
-			heapq.heappush(self.heap, merged)
+			heapq.heappush(self.priority_queue, merged)
 
 
-	def make_codes_helper(self, root, current_code):
+	def create_codes_helper(self, root, current_code):
 		if(root == None):
 			return
 
 		if(root.char != None):
-			self.codes[root.char] = current_code
-			self.reverse_mapping[current_code] = root.char
+			self.huffman_codes[root.char] = current_code
+			self.code_to_char[current_code] = root.char
 			return
 
-		self.make_codes_helper(root.left, current_code + "0")
-		self.make_codes_helper(root.right, current_code + "1")
+		self.create_codes_helper(root.left, current_code + "0")
+		self.create_codes_helper(root.right, current_code + "1")
 
 
-	def make_codes(self):
-		root = heapq.heappop(self.heap)
+	def create_codes(self):
+		root = heapq.heappop(self.priority_queue)
 		current_code = ""
-		self.make_codes_helper(root, current_code)
+		self.create_codes_helper(root, current_code)
 
 
-	def get_encoded_text(self, text):
+	def get_encoded_bytestring(self, text):
 		encoded_text = ""
 		for character in text:
-			encoded_text += self.codes[character]
+			encoded_text += self.huffman_codes[character]
 		return encoded_text
 	
 
 
-	def pad_encoded_text(self, encoded_text):
+	def pad_encoded_bytestring(self, encoded_text):
 		extra_padding = 8 - len(encoded_text) % 8
 		for i in range(extra_padding):
 			encoded_text += "0"
@@ -125,35 +125,36 @@ class HuffmanCoding:
 			green_array = byte_string_uncompressed[1::3]
 			blue_array = byte_string_uncompressed[2::3]
 			# print(f"{np.average(red_array)} {np.average(green_array)} {np.average(blue_array)}")
-			frequency = self.make_frequency_dict(byte_string_uncompressed)
-			self.make_heap(frequency)
+			frequency = self.get_char_frequency(byte_string_uncompressed)
+			self.make_priority_queue(frequency)
 			self.merge_nodes()
-			self.make_codes()
+			self.create_codes()
 			exp_size = 0
-			for i in self.codes.keys():
-				exp_size += frequency[i]*(len(self.codes[i]))
+			for i in self.huffman_codes.keys():
+				exp_size += frequency[i]*(len(self.huffman_codes[i]))
 			#red
 			# print(exp_size)
-			encoded_text = self.get_encoded_text(red_array)
-			padded_encoded_text = self.pad_encoded_text(encoded_text)
+			encoded_text = self.get_encoded_bytestring(red_array)
+			padded_encoded_text = self.pad_encoded_bytestring(encoded_text)
 			b = self.get_byte_array(padded_encoded_text)
 			output.write(bytes(b))
 			output.write(delimiter)
 			#green
-			encoded_text = self.get_encoded_text(green_array)
-			padded_encoded_text = self.pad_encoded_text(encoded_text)
+			encoded_text = self.get_encoded_bytestring(green_array)
+			padded_encoded_text = self.pad_encoded_bytestring(encoded_text)
 			b = self.get_byte_array(padded_encoded_text)
 			output.write(bytes(b))
 			output.write(delimiter)
 			#blue
-			encoded_text = self.get_encoded_text(blue_array)
-			padded_encoded_text = self.pad_encoded_text(encoded_text)
+			encoded_text = self.get_encoded_bytestring(blue_array)
+			padded_encoded_text = self.pad_encoded_bytestring(encoded_text)
 			b = self.get_byte_array(padded_encoded_text)
 			output.write(bytes(b))
 			output.write(delimiter)
-			self.codes["shape"] = shape
-			pickle.dump(self.codes, output)
+			self.huffman_codes["shape"] = shape
+			pickle.dump(self.huffman_codes, output)
 		print("Compressed")
+		os.remove(filename + ".txt")
 		return output_path
 
 	def compress(self,file_ext = '.txt',shape = 0):
@@ -166,20 +167,22 @@ class HuffmanCoding:
 			output.write(bytes('\x01','latin1'))
 			text = file.read()
 			text = text.rstrip()
-			frequency = self.make_frequency_dict(text)
-			self.make_heap(frequency)
+			frequency = self.get_char_frequency(text)
+			self.make_priority_queue(frequency)
 			self.merge_nodes()
-			self.make_codes()
-			encoded_text = self.get_encoded_text(text)
-			padded_encoded_text = self.pad_encoded_text(encoded_text)
-			# print(len(self.codes))
+			self.create_codes()
+			encoded_text = self.get_encoded_bytestring(text)
+			padded_encoded_text = self.pad_encoded_bytestring(encoded_text)
+			# print(len(self.huffman_codes))
 			b = self.get_byte_array(padded_encoded_text)
 			output.write(bytes(b))
 			delimiter =  bytes(self.delimiter,'latin1')
 			output.write(delimiter)
-			self.codes["shape"] = shape
-			pickle.dump(self.codes, output)
+			self.huffman_codes["shape"] = shape
+			pickle.dump(self.huffman_codes, output)
 		print("Compressed")
+		if(file_extension != ".txt"):
+			os.remove(filename + ".txt")
 		return output_path
 
 
@@ -201,8 +204,8 @@ class HuffmanCoding:
 
 		for bit in encoded_text:
 			current_code += bit
-			if(current_code in self.reverse_mapping):
-				character = self.reverse_mapping[current_code]
+			if(current_code in self.code_to_char):
+				character = self.code_to_char[current_code]
 				decoded_text += character
 				current_code = ""
 
@@ -214,8 +217,8 @@ class HuffmanCoding:
 
 		for bit in encoded_text:
 			current_code += bit
-			if(current_code in self.reverse_mapping):
-				character = self.reverse_mapping[current_code]
+			if(current_code in self.code_to_char):
+				character = self.code_to_char[current_code]
 				decoded_text.append(character)
 				current_code = ""
 
@@ -325,12 +328,12 @@ class HuffmanCoding:
 			# rev_huff_code = {v:k for k,v in codes.items()}
 			# print(huff_code)
 			rev_huff_code = {v:k for k,v in huff_code.items()}
-			self.reverse_mapping = rev_huff_code
+			self.code_to_char = rev_huff_code
 			red = self.decode_img(encoded_text1)
 			green = self.decode_img(encoded_text2)
 			blue = self.decode_img(encoded_text3)
 			length = shape[0]*shape[1]
-			print(len(red),len(blue),len(green))
+			# print(len(red),len(blue),len(green))
 			red = np.resize(red,length)
 			green = np.resize(green,length)
 			blue = np.resize(blue,length)
@@ -366,6 +369,7 @@ class HuffmanCoding:
 			# print(file_extension)
 			if file_extension == '.bmp' or file_extension == '.jpg' or file_extension == '.png':
 				return output_path,file_extension,shape
+			byte = file.read(1)
 			while(True):
 				while(len(byte) >0 and byte != delimiter[0]):
 					byte = ord(byte)
@@ -395,7 +399,7 @@ class HuffmanCoding:
 			shape = huff_code.pop("shape")
 			# rev_huff_code = {v:k for k,v in codes.items()}
 			rev_huff_code = {v:k for k,v in huff_code.items()}
-			self.reverse_mapping = rev_huff_code
+			self.code_to_char = rev_huff_code
 
 			decompressed_text = self.decode_text(encoded_text)
 			output.write(decompressed_text)

@@ -178,3 +178,4 @@ class ImageEncoding:
         # print(average)
         # data = Image.fromarray(res)
         data.save(self.filename + file_ext)
+        os.remove(self.filename + '.txt')
