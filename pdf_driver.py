@@ -10,7 +10,7 @@ class PdfEncoding :
     def encode(self):
         filename, file_extension = os.path.splitext(self.path)
         text_filename = filename + ".txt"
-        with open(self.path, 'rb') as f, open(text_filename,'w') as output :
+        with open(self.path, 'rb') as f, open(text_filename,'w',encoding='latin1') as output :
             data = f.read()
             output.write(str(data))
 
@@ -19,7 +19,12 @@ class PdfEncoding :
     def decode(self):
         filename, file_extension = os.path.splitext(self.path)
         file_extension = '.pdf'
-        file = open(filename  + file_extension, 'wb')
-        for line in open(self.path, 'rb').readlines():
-            file.write(line)
+        # file = open(filename  + file_extension, 'wb')
+        # for line in open(self.path, 'rb').readlines():
+        #     file.write(line)
+        with open(filename  + file_extension,'wb') as file, open(self.path,'rb') as data:
+            text = data.read()
+            text = text.decode('latin1')
+            file.write(bytes(text,'latin1'))
+        os.remove(filename + '.txt')
         file.close()
