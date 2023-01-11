@@ -53,7 +53,7 @@ def recvf(soc):
     print("Recieving")
     filename = soc.recv(size).decode('utf-8')
     Tk().withdraw()
-    enc_path = asksaveasfilename()
+    enc_path = asksaveasfilename(defaultextension = '.bin')
     if not enc_path.endswith('.bin') :
         enc_path = enc_path[:-4] + '.bin'
     with open(enc_path, 'wb') as fileHandler:
