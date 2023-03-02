@@ -1,17 +1,18 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 
 import socket
 import os
 import sys
 import select
 import time
-import  multiprocessing.pool
-import  functools
-from tkinter import Tk     # from tkinter import Tk for Python 3.x
-from tkinter.filedialog import askopenfilename,asksaveasfilename
+import multiprocessing.pool
+import functools
+from tkinter import Tk  # from tkinter import Tk for Python 3.x
+from tkinter.filedialog import askopenfilename, asksaveasfilename
 from driver import driver
-host = ''
+
+host = ""
 port = 9896
 backlog = 10
 size = 4096
@@ -25,156 +26,164 @@ def timeout(max_timeout):
             async_result = pool.apply_async(item, args, kwargs)
             # raises a TimeoutError if execution exceeds max_timeout
             return async_result.get(max_timeout)
+
         return func_wrapper
+
     return timeout_decorator
 
 
-#function to send file
+# function to send file
 def sendf(soc):
     file_encoder = driver()
     print("sending")
     fname = file_encoder.send()
-    soc.send(bytes(fname , 'utf-8'))
-    with open(fname,'rb') as fileHandler:
+    soc.send(bytes(fname, "utf-8"))
+    with open(fname, "rb") as fileHandler:
         fileHandler.seek(0)
         data = fileHandler.read()
         if not isinstance(data, bytes):
             print("ISSUE")
-            data = data.encode('utf-8')
+            data = data.encode("utf-8")
         soc.sendall(data)
-        print('File sent')
+        print("File sent")
+
 
 @timeout(5.0)
-def timeout_recv(soc , size):
+def timeout_recv(soc, size):
     return soc.recv(size)
 
-#function to receive file
+
+# function to receive file
 def recvf(soc):
     print("Recieving")
-    filename = soc.recv(size).decode('utf-8')
+    filename = soc.recv(size).decode("utf-8")
     Tk().withdraw()
-    enc_path = asksaveasfilename(defaultextension = '.bin')
-    if not enc_path.endswith('.bin') :
-        enc_path = enc_path[:-4] + '.bin'
-    with open(enc_path, 'wb') as fileHandler:
+    enc_path = asksaveasfilename(defaultextension=".bin")
+    if not enc_path.endswith(".bin"):
+        enc_path = enc_path[:-4] + ".bin"
+    with open(enc_path, "wb") as fileHandler:
         while True:
             try:
-                recvdata = timeout_recv(soc , size)
+                recvdata = timeout_recv(soc, size)
                 fileHandler.write(recvdata)
-                if not recvdata: break
+                if not recvdata:
+                    break
             except multiprocessing.context.TimeoutError:
                 break
-    print('File received')
+    print("File received")
     file_decoder = driver()
     file_decoder.receive(enc_path)
-    
 
-#function for client to listen for other client connections
+
+# function for client to listen for other client connections
 def clisten(user_input):
     print("IN LISTEN")
     cport = int(user_input)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    #binding the socket to localhost and port
-    s.bind((host,cport))
-    print('listening')
+    # binding the socket to localhost and port
+    s.bind((host, cport))
+    print("listening")
     s.listen(backlog)
-    clist=[s]
+    clist = [s]
     while True:
-    # Using Select to handle multiplexing
-        inready,outready,exceptready = select.select(clist,[],[])
+        # Using Select to handle multiplexing
+        inready, outready, exceptready = select.select(clist, [], [])
         for sock in inready:
             if sock == s:
                 client, address = s.accept()
                 clist.append(client)
-                print('connected')
-                client.send(b'Start typing')
+                print("connected")
+                client.send(b"Start typing")
             else:
                 try:
                     data = sock.recv(size)
-                    data = data.decode('utf-8')
+                    data = data.decode("utf-8")
                     if data:
                         print()
                         print(data)
                         try:
-                            if data == '\SEND_FILE':
+                            if data == "\SEND_FILE":
                                 recvf(client)
                         except Exception as e:
                             print(e)
-                        if data == '\CLOSE_SESSION':
-                            print('session ended')
+                        if data == "\CLOSE_SESSION":
+                            print("session ended")
                             client.close()
                             break
-                        user_input = input('fs> ')
-                        client.send(bytes(user_input , 'utf-8'))
-                        if user_input == '\SEND_FILE':
+                        user_input = input("fs> ")
+                        client.send(bytes(user_input, "utf-8"))
+                        if user_input == "\SEND_FILE":
                             sendf(client)
-                            print("Sent file")     
-                        if user_input == '\CLOSE_SESSION':
-                            print('session ended')
+                            print("Sent file")
+                        if user_input == "\CLOSE_SESSION":
+                            print("session ended")
                             client.close()
                             break
                 except:
                     client.close()
                     input.remove(client)
-                    #continue                
-    return             
+                    # continue
+    return
 
-#function for client to connect to listening client                
+
+# function for client to connect to listening client
 def cconnect(data):
     print("IN CONNECT")
     cport = int(data)
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
-        soc.connect((host,cport))
+        soc.connect((host, cport))
     except ConnectionRefusedError:
-        print('Unable to connect to client')
-    print('now connected')
+        print("Unable to connect to client")
+    print("now connected")
     while True:
         data = soc.recv(size)
-        data = data.decode('utf8')
+        data = data.decode("utf8")
         print(data)
-        if data == '\SEND_FILE':
+        if data == "\SEND_FILE":
             recvf(soc)
-        if data == '\CLOSE_SESSION':
-            print('session ended')
+        if data == "\CLOSE_SESSION":
+            print("session ended")
             soc.close()
             break
-        user_input = input('ft> ')
-        soc.send(bytes(user_input , 'utf-8'))
-        if  user_input == '\SEND_FILE':
-            sendf(soc) 
-        if user_input == '\CLOSE_SESSION':
-            print('session ended')
+        user_input = input("ft> ")
+        soc.send(bytes(user_input, "utf-8"))
+        if user_input == "\SEND_FILE":
+            sendf(soc)
+        if user_input == "\CLOSE_SESSION":
+            print("session ended")
             soc.close()
             break
     return
 
-#main to handle connection between server and client
+
+# main to handle connection between server and client
 def main():
-    #creating a socket
+    # creating a socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
-        sock.connect((host,port))
+        sock.connect((host, port))
     except ConnectionRefusedError:
-        print('Unable to connect to chat server')
+        print("Unable to connect to chat server")
         sys.exit()
     while True:
         data = sock.recv(size)
-        data = data.decode('utf8')
-        if data.isdigit() and int(data)>2000:
+        data = data.decode("utf8")
+        if data.isdigit() and int(data) > 2000:
             cconnect(data)
         user_input = input(data)
-        user_input = bytes(user_input , 'utf-8')
+        user_input = bytes(user_input, "utf-8")
         sock.send((user_input))
-        if user_input.isdigit() and int(user_input)>2000:
+        if user_input.isdigit() and int(user_input) > 2000:
             clisten(user_input)
-        if user_input == '\DISCONNECT_CLIENT':
+        if user_input == "\DISCONNECT_CLIENT":
             sock.close()
             break
         print()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())
