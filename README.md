@@ -1,15 +1,13 @@
 # CLI tool for File Transfer with Compression
 
-This project is a Python-based file transfer tool that enables you to transfer files between different systems while compressingn the files for efficient transfer. The tool utilizes compression algorithms to reduce the size of the files before transferring them, optimizing bandwidth usage and reducing transfer time. It supports various file formats including text files, images, and PDF files.
+This project is a Python-based file transfer tool that enables you to transfer files between different systems while compressing the files for efficient transfer. The tool utilizes compression algorithms to reduce the size of the files before transferring them, optimizing bandwidth usage and reducing transfer time. It supports various file formats including text files, images, and PDF files.
 
 # Features
-* Transfer files between systems using a client-server architecture.
 * Support for compression of text files, images (BMP, PNG, JPG), and PDF files.
-* Utilize Huffman Coding algorithm for text file compression.
-* Provides image encoding techniques to compress and decompress images.
-* Preserve file integrity and ensure successful decompression on the receiving end.
+* Utilizes Huffman Coding algorithm for file compression.
+* Employs image encoding techniques to compress and decompress images.
+* Preserves file integrity and ensures successful decompression on the receiving end.
 * User-friendly command-line interface for ease of use.
-* Cross-platform compatibility.
 
 # Installation 
 * Run `server.py`.
